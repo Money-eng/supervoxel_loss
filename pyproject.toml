@@ -3,12 +3,12 @@ requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "supervoxel-loss"
-description = "Generated from aind-library-template"
+name = "supervoxel_loss"
+description = "Supervoxel-based topological loss function for training neural networks to perform instance segmentation."
 license = {text = "MIT"}
 requires-python = ">=3.7"
 authors = [
-    {name = "Allen Institute for Neural Dynamics"}
+    {name = "Anna Grim", email = "anna.grim@alleninstitute.org"}
 ]
 classifiers = [
     "Programming Language :: Python :: 3"
@@ -17,6 +17,9 @@ readme = "README.md"
 dynamic = ["version"]
 
 dependencies = [
+    'toolz',
+    'torch',
+    'waterz'
 ]
 
 [project.optional-dependencies]
