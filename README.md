@@ -11,7 +11,7 @@
 
 ## Overview
 
-This repository implements a connectivity-preserving loss function designed to address the challenge of performing accurate instance segmentation of neuron morphologies and their long-range axonal projections. The method leverages the concept of "supervoxels"—connected sets of voxels—to detect and penalize connectivity errors during training. This approach efficiently handles the segmentation of curvilinear, filamentous structures, offering minimal computational overhead.
+This repository implements a connectivity-preserving loss function designed to address the challenge of performing accurate instance segmentation of neuron morphologies and their long-range axonal projections. The method leverages the concept of "supervoxels"—connected sets of voxels—to detect and penalize connectivity errors during training. This approach efficiently handles the segmentation of curvilinear, filamentous structures, with minimal computational overhead.
 
 
 ## Compute Loss
