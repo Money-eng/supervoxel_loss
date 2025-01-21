@@ -14,7 +14,7 @@
 To do...
 
 
-## Compute SuperVoxel-Based Loss
+## Compute Loss
 
 To do...
 
