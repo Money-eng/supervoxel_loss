@@ -1,4 +1,4 @@
-# supervoxel-loss
+# Efficient Connectivity-Preserving Instance Segmentation with Supervoxel-Based Loss Function
 
 [![License](https://img.shields.io/badge/license-MIT-brightgreen)](LICENSE)
 ![Code Style](https://img.shields.io/badge/code%20style-black-black)
