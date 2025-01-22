@@ -11,10 +11,10 @@
 
 ## Overview
 
-This repository implements a connectivity-preserving loss function designed to address the challenge of performing accurate instance segmentation of curvilinear structures. The method uses a topological loss function that leverages the concept of "supervoxels"—connected sets of voxels—to detect and penalize connectivity errors during training.
+This repository implements a connectivity-preserving loss function designed to improve instance segmentation of curvilinear structures. The paradigm shift here is to evaluate each mistake during training at the “structure-level” as opposed to the voxel-level. The loss is computed by detecting supervoxels in the false positive and negative prediction masks during training, then assigning higher penalties to those that introduce connectivity errors.
 
 
-## Compute Loss
+## Method
 
 To do...
 
