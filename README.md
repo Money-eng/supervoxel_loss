@@ -11,7 +11,7 @@
 
 ## Overview
 
-This repository implements a connectivity-preserving loss function designed to address the challenge of performing accurate instance segmentation of neuron morphologies. The method uses a topological loss function that leverages the concept of "supervoxels"—connected sets of voxels—to detect and penalize connectivity errors during training.
+This repository implements a connectivity-preserving loss function designed to address the challenge of performing accurate instance segmentation of curvilinear structures. The method uses a topological loss function that leverages the concept of "supervoxels"—connected sets of voxels—to detect and penalize connectivity errors during training.
 
 
 ## Compute Loss
