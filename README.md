@@ -25,4 +25,4 @@ pip install -e .
 ```
 
 ## License
-GraphTrace is licensed under the MIT License.
+supervoxel-loss is licensed under the MIT License.
