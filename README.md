@@ -11,7 +11,7 @@
 
 ## Overview
 
-This repository implements a connectivity-preserving loss function designed to improve instance segmentation of curvilinear structures. The paradigm shift here is to evaluate segmentation quality at the “structure-level” as opposed to the voxel-level. The loss is computed by detecting supervoxels in the false positive and false negative masks during training, then assigning higher penalties to supervoxels that introduce connectivity errors. This method ensures that the segmented structures remain topologically consistent, reducing the fragmentation and merging of curvilinear structures, which are common issues in many segmentation tasks.
+This repository implements a connectivity-preserving loss function designed to improve instance segmentation of curvilinear structures. The paradigm shift here is to evaluate segmentation quality at the “structure-level” as opposed to the voxel-level. The loss is computed by detecting supervoxels in the false positive and false negative masks during training, then assigning higher penalties to supervoxels that introduce connectivity errors.
 
 <p>
   <img src="imgs/pipeline.png" width="900" alt="pipeline">
