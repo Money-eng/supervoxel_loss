@@ -23,6 +23,7 @@ The loss computation consists of three main steps:
 
 Finally, the loss is computed by comparing the prediction with the ground truth segmentation, applying higher penalties to voxels within critical supervoxels that affect connectivity.
 <br>
+<br>
 
 <p>
   <img src="imgs/pipeline.png" width="900" alt="pipeline">
