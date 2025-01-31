@@ -18,11 +18,11 @@ The loss computation consists of three main steps:
 <blockquote>
   <p>a. <strong>Binarized Prediction</strong>: Prediction is thresholded into a binary mask to separate foreground from background.</p>
   <p>b. <strong>False Postive/Negative Masks</strong>: Computed by comparing binarized prediction to the ground truth.</p>
-  <p>c. <strong>Critical Supervoxels</strong>: Detect connected components in false positive/negative mask that cause split or merge errors.</p>
+  <p>c. <strong>Critical Supervoxels</strong>: Detect connected components in false positive/negative mask that cause connectivity errors.</p>
 </blockquote>
 <br>
 
-
+Finally, the loss is computed by comparing the prediction with the ground truth segmentation, applying higher penalties to voxels within critical supervoxels that affect connectivity.
 
 <p>
   <img src="imgs/pipeline.png" width="900" alt="pipeline">
