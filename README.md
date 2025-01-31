@@ -16,8 +16,8 @@ This repository implements a connectivity-preserving loss function designed to i
 The loss computation consists of three main steps:
 
 <blockquote>
-  <p>a. <strong>Binarized Prediction</strong>: prediction is thresholded into a binary mask to separating foreground from background.</p>
-  <p>b. <strong>False Postive/Negative Masks</strong>: computed by comparing the binarized prediction to the ground truth.</p>
+  <p>a. <strong>Binarized Prediction</strong>: Prediction is thresholded into a binary mask to separating foreground from background.</p>
+  <p>b. <strong>False Postive/Negative Masks</strong>: Computed by comparing the binarized prediction to the ground truth.</p>
   <p>c. <strong>Critical Supervoxels</strong>: to do...</p>
 </blockquote>
 <br>
