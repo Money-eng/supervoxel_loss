@@ -7,18 +7,21 @@ Created on Sun November 05 16:00:00 2023
 Supervoxel-based topological loss function for training neural networks to
 perform instance segmentation.
 
+
+TO DO: UPDATE WITH REDEFINITIONS OF ALPHA AND BETA
 """
 
 import cupy
 import numpy as np
 from supervoxel_loss.critical_detection_3d import detect_critical
 from torch import nn
-from torch.utils.dlpack import to_dlpack, from_dlpack
+from torch.utils.dlpack import from_dlpack
 
 
 class SuperVoxelLoss(nn.Module):
     """
-    Supervoxel-based topological loss function.
+    Supervoxel-based loss function for training neural networks to perform
+    instance segmentation.
 
     """
 
@@ -26,30 +29,29 @@ class SuperVoxelLoss(nn.Module):
         self,
         alpha=0.5,
         beta=0.5,
-        criterion=None,
+        criterion=nn.BCEWithLogitsLoss(reduction="none"),
         device=0,
-        pred_threshold=0.5,
-        return_mask=False,
+        threshold=0.5,
     ):
         """
-        Constructs a SuperVoxelLoss object.
+        Instantiates SuperVoxelLoss module.
 
         Parameters
         ----------
-        alpha : float
-
-        beta : float
-
+        alpha : float, optional
+            Scaling factor that controls the relative importance of voxel-
+            versus structure-level mistakes. The default is 0.5.
+        beta : float, optional
+            Scaling factor that controls the relative importance of split
+            versus merge mistakes. The default is 0.5.
         criterion : torch.nn.modules.loss
-            Loss function that is used to penalize critical components. If
-            provided, set "reduction=None". The default value is None.
+            Loss function used to penalize voxel- and structure-level
+            mistakes. If provided, must set "reduction=None". The default is
+            nn.BCEWithLogitsLoss.
         device : int, optional
             Device (e.g. cpu or gpu id) used to train model. The default is 0.
-        pred_threshold : float
-
-        return_mask : bool
-            Indication of whether to binary mask that indicates which voxels
-            correspond to critical components.
+        threshold : float
+            Theshold used to binarize predictions. The defulat is 0.5.
 
         Returns
         -------
@@ -59,13 +61,9 @@ class SuperVoxelLoss(nn.Module):
         super(SuperVoxelLoss, self).__init__()
         self.alpha = alpha
         self.beta = beta
+        self.criterion = criterion
         self.device = device
-        self.return_mask = return_mask
-        self.threshold = pred_threshold
-        if criterion:
-            self.criterion = criterion
-        else:
-            self.criterion = nn.BCEWithLogitsLoss(reduction="none")
+        self.threshold = threshold
 
     def forward(self, y_pred, y_target):
         """
@@ -74,9 +72,9 @@ class SuperVoxelLoss(nn.Module):
         Parameters
         ----------
         y_pred : torch.Tensor
-
+            Predicted segmentations from batch.
         y_target : torch.Tensor
-            Target segmentation.
+            Target segmentation from patch.
 
         Returns
         -------
@@ -118,12 +116,3 @@ class SuperVoxelLoss(nn.Module):
                 )
                 cnts.append(cnt_i)
         return from_dlpack(mask.toDlpack()), cnts
-
-
-# Utils
-def to_cpu(arr):
-    return np.array(arr.detach().cpu())
-
-
-def to_cupy(arr):
-    return cupy.from_dlpack(to_dlpack(arr))
