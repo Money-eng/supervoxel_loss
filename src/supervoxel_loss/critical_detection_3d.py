@@ -15,7 +15,7 @@ from scipy.ndimage import label
 import numpy as np
 
 
-def detect_critical(y_target, y_pred):
+def detect_critical_3d(y_target, y_pred):
     """
     Detects negatively critical components for 3D images.
 

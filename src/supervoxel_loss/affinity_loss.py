@@ -41,7 +41,7 @@ class SuperVoxelAffinity(nn.Module):
         threshold=0.5,
     ):
         """
-        Instantiates SuperVoxelLoss module.
+        Instantiates a SuperVoxelLoss object with the given parameters.
 
         Parameters
         ----------
@@ -59,8 +59,7 @@ class SuperVoxelAffinity(nn.Module):
             mistakes. If provided, must set "reduction=None". The default is
             nn.BCEWithLogitsLoss.
         device : int, optional
-            Device (CPU or GPU) on which the model and loss computation will
-            run. The default is 0.
+            Device on which to train model. The default is "cuda".
         return_cnts : bool, optional
             Indication of whether to return the number of negatively and
             positively critical components. The default is False.
@@ -235,6 +234,7 @@ class SuperVoxelAffinity(nn.Module):
         SuperVoxelAffinity loss function.
 
         """
+
         def __init__(self, edges):
             """
             Initializes Decoder object with the given edge affinities.
@@ -360,15 +360,15 @@ def get_pair(labels, edge):
 
     labels1 = labels[
         ...,
-        offset1[0]: shape[0] - offset2[0],
-        offset1[1]: shape[1] - offset2[1],
-        offset1[2]: shape[2] - offset2[2],
+        offset1[0] : shape[0] - offset2[0],
+        offset1[1] : shape[1] - offset2[1],
+        offset1[2] : shape[2] - offset2[2],
     ]
     labels2 = labels[
         ...,
-        offset2[0]: shape[0] - offset1[0],
-        offset2[1]: shape[1] - offset1[1],
-        offset2[2]: shape[2] - offset1[2],
+        offset2[0] : shape[0] - offset1[0],
+        offset2[1] : shape[1] - offset1[1],
+        offset2[2] : shape[2] - offset1[2],
     ]
     return labels1, labels2
 
@@ -397,8 +397,8 @@ def get_pair_first(labels, edge):
     offset2 = np.maximum(-edge, 0)
     ret = labels[
         ...,
-        offset1[0]: shape[0] - offset2[0],
-        offset1[1]: shape[1] - offset2[1],
-        offset1[2]: shape[2] - offset2[2],
+        offset1[0] : shape[0] - offset2[0],
+        offset1[1] : shape[1] - offset2[1],
+        offset1[2] : shape[2] - offset2[2],
     ]
     return ret
