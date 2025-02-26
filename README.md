@@ -7,7 +7,7 @@
 ![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen?logo=codecov)
 ![Python](https://img.shields.io/badge/python->=3.7-blue?logo=python)
 
-[paper](https://arxiv.org/abs/2501.01022) | poster
+[paper](https://arxiv.org/abs/2501.01022) | [poster]([https://github.com/AllenNeuralDynamics/supervoxel-loss/blob/main/imgs/poster.png]) | 
 
 ## Overview
 
