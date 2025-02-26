@@ -35,6 +35,10 @@ Finally, the loss is computed by comparing the prediction with the ground truth 
 
 To do...
 
+<p>
+  <img src="imgs/usage.png" width="900" alt="pipeline">
+</p>
+
 ## Installation
 To use the software, in the root directory, run
 ```bash
