@@ -33,7 +33,7 @@ Finally, the loss is computed by comparing the prediction with the ground truth 
 
 ## Usage
 
-To do...
+Here is a simple example of using this loss function to train a model.
 
 <p>
   <img src="imgs/usage.png" width="900" alt="pipeline">
