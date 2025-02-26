@@ -81,13 +81,13 @@ class SuperVoxelAffinityLoss(nn.Module):
 
         """
         # Call parent class
-        super(SuperVoxelAffinity, self).__init__()
+        super(SuperVoxelAffinityLoss, self).__init__()
 
         # Instance attributes
         self.alpha = alpha
         self.beta = beta
         self.criterion = criterion
-        self.decoder = SuperVoxelAffinity.Decoder(edges)
+        self.decoder = SuperVoxelAffinityLoss.Decoder(edges)
         self.device = device
         self.edges = list(edges)
         self.threshold = threshold
@@ -282,7 +282,7 @@ class SuperVoxelAffinityLoss(nn.Module):
             None
 
             """
-            super(SuperVoxelAffinity.Decoder, self).__init__()
+            super(SuperVoxelAffinityLoss.Decoder, self).__init__()
             self.edges = list(edges)
 
         def forward(self, affs, i):
@@ -361,15 +361,15 @@ def get_pair(labels, edge):
 
     labels1 = labels[
         ...,
-        offset1[0] : shape[0] - offset2[0],
-        offset1[1] : shape[1] - offset2[1],
-        offset1[2] : shape[2] - offset2[2],
+        offset1[0]: shape[0] - offset2[0],
+        offset1[1]: shape[1] - offset2[1],
+        offset1[2]: shape[2] - offset2[2],
     ]
     labels2 = labels[
         ...,
-        offset2[0] : shape[0] - offset1[0],
-        offset2[1] : shape[1] - offset1[1],
-        offset2[2] : shape[2] - offset1[2],
+        offset2[0]: shape[0] - offset1[0],
+        offset2[1]: shape[1] - offset1[1],
+        offset2[2]: shape[2] - offset1[2],
     ]
     return labels1, labels2
 
@@ -398,8 +398,8 @@ def get_pair_first(labels, edge):
     offset2 = np.maximum(-edge, 0)
     ret = labels[
         ...,
-        offset1[0] : shape[0] - offset2[0],
-        offset1[1] : shape[1] - offset2[1],
-        offset1[2] : shape[2] - offset2[2],
+        offset1[0]: shape[0] - offset2[0],
+        offset1[1]: shape[1] - offset2[1],
+        offset1[2]: shape[2] - offset2[2],
     ]
     return ret
