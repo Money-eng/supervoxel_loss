@@ -217,7 +217,7 @@ class SuperVoxelLoss(nn.Module):
 
 
 # --- Subclasses ---
-class SuperVoxelLoss2D(SuperVoxel):
+class SuperVoxelLoss2D(SuperVoxelLoss):
     """
     Subclass of SuperVoxelLoss designed for 2D segmentation tasks with
     additional functionality for computing and handling critical components
@@ -268,7 +268,7 @@ class SuperVoxelLoss2D(SuperVoxel):
         self.detect_critical = detect_critical_2d
 
 
-class SuperVoxelLoss3D(SuperVoxel):
+class SuperVoxelLoss3D(SuperVoxelLoss):
     """
     Subclass of SuperVoxelLoss designed for 3D segmentation tasks with
     additional functionality for computing and handling critical components
