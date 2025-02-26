@@ -80,7 +80,7 @@ class SuperVoxelLoss(nn.Module):
 
         """
         # Call parent class
-        super(SuperVoxel, self).__init__()
+        super(SuperVoxelLoss, self).__init__()
 
         # Instance attributes
         self.alpha = alpha
@@ -260,7 +260,7 @@ class SuperVoxelLoss2D(SuperVoxel):
 
         """
         # Call parent class
-        super(SuperVoxel2D, self).__init__(
+        super(SuperVoxelLoss2D, self).__init__(
             alpha, beta, criterion, device, threshold
         )
 
@@ -311,7 +311,7 @@ class SuperVoxelLoss3D(SuperVoxel):
 
         """
         # Call parent class
-        super(SuperVoxel2D, self).__init__(
+        super(SuperVoxelLoss3D, self).__init__(
             alpha, beta, criterion, device, threshold
         )
 
