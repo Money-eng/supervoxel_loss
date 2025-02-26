@@ -5,10 +5,22 @@ Created on Fri November 17 22:00:00 2023
 @email: anna.grim@alleninstitute.org
 
 
-Implementation of supervoxel-based loss function for training affinity-based
-neural networks to perform instance segmentation.
+This module implements a supervoxel-based topological loss function designed
+for training affinity-based neural networks to perform instance segmentation.
+The loss function penalizes voxel- and structure-level mistakes by focusing on
+"critical" regions in the prediction.
 
-Note: We use the term "labels" to refer to a segmentation.
+The core idea is to calculate the loss based on two key components:
+    1. Voxel-Level Mistakes
+        These occur when the predicted segmentation differs from the ground
+        truth at the voxel-level.
+
+    2. Structure-Level Mistakes
+        These occur when the structure of the predicted segmentation differs
+        from the ground truth, such as over- or under-segmenting individual
+        objects or incorrectly merging objects.
+
+The module only supports 3D segmentation tasks.
 
 """
 
@@ -23,7 +35,7 @@ import torch.nn as nn
 from supervoxel_loss.critical_detection_3d import detect_critical
 
 
-class SuperVoxelAffinity(nn.Module):
+class SuperVoxelAffinityLoss(nn.Module):
     """
     Supervoxel-based loss function for training neural networks to perform
     affinity-based instance segmentation.
@@ -37,11 +49,10 @@ class SuperVoxelAffinity(nn.Module):
         beta=0.5,
         criterion=nn.BCEWithLogitsLoss(reduction="none"),
         device=0,
-        return_cnts=False,
         threshold=0.5,
     ):
         """
-        Instantiates a SuperVoxelLoss object with the given parameters.
+        Instantiates SuperVoxelAffinityLoss object with the given parameters.
 
         Parameters
         ----------
@@ -49,20 +60,18 @@ class SuperVoxelAffinity(nn.Module):
             Edge affinities learned by model (e.g. [[1, 0, 0], [0, 1, 0],
             [0, 0, 1]]).
         alpha : float, optional
-            Scaling factor that controls the relative importance of voxel-
-            versus structure-level mistakes. The default is 0.5.
+            Scaling factor between 0 and 1 that determines the relative
+            importance of voxel- versus structure-level mistakes. The default
+            is 0.5.
         beta : float, optional
-            Scaling factor that controls the relative importance of split
-            versus merge mistakes. The default is 0.5.
-        criterion : torch.nn.modules.loss
+            Scaling factor between 0 and 1 that determines the relative
+            importance of split versus merge mistakes. The default is 0.5.
+        criterion : torch.nn.modules.loss, optional
             Loss function used to penalize voxel- and structure-level
             mistakes. If provided, must set "reduction=None". The default is
             nn.BCEWithLogitsLoss.
-        device : int, optional
+        device : str, optional
             Device on which to train model. The default is "cuda".
-        return_cnts : bool, optional
-            Indication of whether to return the number of negatively and
-            positively critical components. The default is False.
         threshold : float, optional
             Theshold used to binarize predictions. The defulat is 0.5.
 
@@ -81,13 +90,12 @@ class SuperVoxelAffinity(nn.Module):
         self.decoder = SuperVoxelAffinity.Decoder(edges)
         self.device = device
         self.edges = list(edges)
-        self.return_cnts = return_cnts
         self.threshold = threshold
 
     def forward(self, pred_affs, target_labels):
         """
-        Computes the loss for a batch by comparing predicted and target
-        affinites and scales loss per voxel for critical components.
+        Computes the loss for a batch by comparing predictions and ground
+        truth.
 
         Parameters
         ----------
@@ -103,34 +111,113 @@ class SuperVoxelAffinity(nn.Module):
         -------
         torch.Tensor
             Computed loss for the given batch.
-        dict
-            Stats related to the critical components for the batch, such as
-            the number of positively and negatively critical components.
 
         """
-        # Compute critical components
+        # Critical components
         pred_labels = self.affs_to_labels(pred_affs)
-        masks, stats = self.get_critical_masks(pred_labels, target_labels)
+        critical_masks = self.get_critical_masks_for_batch(
+            pred_labels, target_labels
+        )
 
-        # Compute loss
+        # Loss
         loss = 0
         for i in range(pred_affs.size(0)):
-            mask_i = self.toGPU(masks[i, ...])
+            critical_masks_i = self.toGPU(critical_masks[i, ...])
             target_labels_i = self.toGPU(target_labels[i, ...])
             for j, edge in enumerate(self.edges):
-                # Compute affinities
+                # Convert to affinities
                 pred_affs_j = self.decoder(pred_affs[i, ...], j)
                 target_affs_j = get_aff(target_labels_i, edge)
-                mask_aff_j = get_aff(mask_i, edge)
+                critical_mask_aff_j = get_aff(critical_masks_i, edge)
 
-                # Compute loss
+                # Affinity loss
                 loss_j = self.criterion(pred_affs_j, target_affs_j)
-                term_1 = (1 - self.alpha) * loss_j
-                term_2 = self.alpha * mask_aff_j * loss_j
-                loss += (term_1 + term_2).mean()
-        return loss, stats
+                supervoxel_loss_j = critical_mask_aff_j * loss_j
+                loss += (
+                    (1 - self.alpha) * loss_j + self.alpha * supervoxel_loss_j
+                ).mean()
+        return loss
 
-    # --- critical component detection ---
+    def get_critical_masks_for_batch(self, preds, targets):
+        """
+        Computes critical components for each example in the given batch.
+
+        Parameters
+        ----------
+        preds : torch.Tensor
+            Predictions with the shape (batch_size, 1, height, width, *depth).
+            This tensor should contain raw output probabilities (logits) from
+            the model.
+        targets : torch.Tensor
+            Ground truth segmentations with the shape (batch_size, 1, height,
+            width, *depth).
+
+        Returns
+        -------
+        torch.Tensor
+            Binary masks that identify critical components.
+
+        """
+        with ProcessPoolExecutor() as executor:
+            # Assign processes
+            processes = []
+            targets = np.array(targets, dtype=int)
+            for i in range(len(preds)):
+                processes.append(
+                    executor.submit(
+                        self.get_critical_mask,
+                        preds[i],
+                        targets[i, 0, ...],
+                        i,
+                        -1,
+                    )
+                )
+                processes.append(
+                    executor.submit(
+                        self.get_critical_mask,
+                        targets[i, 0, ...],
+                        preds[i],
+                        i,
+                        1,
+                    )
+                )
+
+            # Store results
+            masks = np.zeros((len(preds),) + preds[0].shape)
+            for process in as_completed(processes):
+                i, mask_i = process.result()
+                masks[i, ...] = mask_i
+        return self.toGPU(masks)
+
+    def get_critical_mask(self, pred, target, process_id, critical_type):
+        """
+        Compute the critical mask for the given examples.
+
+        Parameters
+        ----------
+        pred : numpy.ndarray
+            Predicted segmentation.
+        target : numpy.ndarray
+            Ground truth segmentation.
+        process_id : int
+            Index of the given example from a batch.
+        critical_type : int
+            Indication of whether to compute positive or negative critical
+            components.
+
+        Returns
+        -------
+        tuple
+            A tuple containing the following:
+            - "process_id": Index of the given example from a batch.
+            - "mask": Binary mask that identifies the critical components.
+
+        """
+        critical_mask = detect_critical(target, pred)
+        scaling_factor = (1 - self.beta) if critical_type > 0 else self.beta
+        return process_id, scaling_factor * critical_mask
+
+    # --- Miscellanenous ---
     def affs_to_labels(self, affs):
         """
         Converts predicted affinities to predicted labels by decoding the
@@ -144,7 +231,7 @@ class SuperVoxelAffinity(nn.Module):
         Returns
         -------
         List[numpy.ndarray]
-            List of predicted labels for each example in the batch.
+            Predicted labels for each example in the batch.
 
         """
         affs = np.array(affs.detach().cpu(), np.float32)
@@ -155,62 +242,9 @@ class SuperVoxelAffinity(nn.Module):
             labels.append(next(iterator).astype(int))
         return labels
 
-    def get_critical_masks(self, preds, targets):
-        """
-        Computes critical masks for predicted labels.
-
-        Parameters
-        ----------
-        preds : List[torch.Tensor]
-            List of predicted labels from a batch.
-        targets : List[torch.Tensor]
-            List of groundtruth labels from a batch.
-
-        Returns
-        -------
-        tuple
-            A tuple containing the following:
-            - torch.Tensor: critical component masks for a batch.
-            - dict: Dictionary containing the following stats:
-              - "Splits": Average number of negatively critical components.
-              - "Merges": Average number of positively critical components.
-
-        """
-        # Initializations
-        masks = np.zeros((len(preds),) + preds[0].shape)
-        stats = {"Splits": 0, "Merges": 0}
-        targets = np.array(targets, dtype=int)
-
-        # Main
-        with ProcessPoolExecutor() as executor:
-            # Assign processes
-            processes = []
-            for i in range(len(preds)):
-                processes.append(
-                    executor.submit(
-                        get_critical_mask, targets[i, 0, ...], preds[i], i, -1
-                    )
-                )
-                processes.append(
-                    executor.submit(
-                        get_critical_mask, preds[i], targets[i, 0, ...], i, 1
-                    )
-                )
-
-            # Store results
-            for process in as_completed(processes):
-                i, mask_i, n_criticals, crtitical_type = process.result()
-                if crtitical_type == -1:
-                    masks[i, ...] += self.beta * mask_i
-                    stats["Splits"] += n_criticals / len(preds)
-                else:
-                    masks[i, ...] += (1 - self.beta) * mask_i
-                    stats["Merges"] += n_criticals / len(preds)
-        return self.toGPU(masks), stats
-
     def toGPU(self, arr):
         """
-        Converts "arr" to a tensor and moves it to the GPU.
+        Converts the given array to a tensor and moves it to a GPU device.
 
         Parameters
         ----------
@@ -223,27 +257,25 @@ class SuperVoxelAffinity(nn.Module):
             Tensor on GPU.
 
         """
-        if type(arr) == np.ndarray:
-            arr[np.newaxis, ...] = arr
-            arr = torch.from_numpy(arr)
+        arr[np.newaxis, ...] = arr
+        arr = torch.from_numpy(arr)
         return Variable(arr).to(self.device, dtype=torch.float32)
 
     class Decoder(nn.Module):
         """
-        Decoder module for processing edge affinities in the
-        SuperVoxelAffinity loss function.
+        Decoder module for processing edge affinities.
 
         """
 
         def __init__(self, edges):
             """
-            Initializes Decoder object with the given edge affinities.
+            Instantiates Decoder object with the given edge affinities.
 
             Parameters
             ----------
             edges : List[Tuple[int]]
-                Edge affinities learned by model (e.g. [[1, 0, 0], [0, 1, 0],
-                [0, 0, 1]]).
+                Edge affinities learned by model (e.g. [(1, 0, 0]), (0, 1, 0),
+                (0, 0, 1)]).
 
             Returns
             -------
@@ -277,38 +309,7 @@ class SuperVoxelAffinity(nn.Module):
             return get_pair_first(affs[..., [i], :, :, :], self.edges[i])
 
 
-# --- helpers ---
-def get_critical_mask(target, pred, process_id, critical_type):
-    """
-    Compute the critical mask for a given examples and returns associated
-    metadata.
-
-    Parameters
-    ----------
-    target : numpy.ndarray
-        Ground truth labels.
-    pred : numpy.ndarray
-        Predicted labels.
-    process_id : int
-        A unique identifier for an example in a given batch.
-    critical_type : int
-        An integer indicating whether to compute positive or negative critical
-        components based on whether its sign is positive or negative.
-
-    Returns
-    -------
-    tuple
-        A tuple containing:
-        - "process_id" : A unique identifier for an example in a given batch.
-        - "mask" : A binary mask indicating the critical components.
-        - "n_criticals" : Number of detected critical components.
-        - "critical_type" : Type of critical component computed.
-
-    """
-    mask, n_criticals = detect_critical(target, pred)
-    return process_id, mask, n_criticals, critical_type
-
-
+# --- Helpers ---
 def get_aff(labels, edge):
     """
     Computes affinities for labels based on the given edge.

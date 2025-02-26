@@ -37,7 +37,7 @@ from supervoxel_loss.critical_detection_2d import detect_critical_2d
 from supervoxel_loss.critical_detection_3d import detect_critical_3d
 
 
-class SuperVoxel(nn.Module):
+class SuperVoxelLoss(nn.Module):
     """
     Supervoxel-based loss function for training neural networks to perform
     instance segmentation. This class implements a topology-aware loss
@@ -91,17 +91,18 @@ class SuperVoxel(nn.Module):
 
     def forward(self, preds, targets):
         """
-        Computes the loss by comparing a prediction and ground truth.
+        Computes the loss for a batch by comparing predictions and ground
+        truth.
 
         Parameters
         ----------
         preds : torch.Tensor
-            Tensor containing the model's predictions with shape (batch_size,
-            1, height, width, *depth*). This tensor should contain raw output
-            probabilities (logits) from the model.
+            Predictions with the shape (batch_size, 1, height, width, *depth).
+            This tensor should contain raw output probabilities (logits) from
+            the model.
         targets : torch.Tensor
-            Tensor containing the ground truth segmentations, with the shape
-            (batch_size, 1, height, width, *depth*).
+            Ground truth segmentations with the shape (batch_size, 1, height,
+            width, *depth).
 
         Returns
         -------
@@ -119,9 +120,9 @@ class SuperVoxel(nn.Module):
         critical_masks = self.get_critical_masks_for_batch(preds, targets)
         for i in range(preds.shape[0]):
             structure_loss = critical_masks[i, ...] * loss[i, ...]
-            loss[i, ...] = (
-                (1 - self.alpha) * loss[i, ...] + self.alpha * structure_loss
-            )
+            loss[i, ...] = (1 - self.alpha) * loss[
+                i, ...
+            ] + self.alpha * structure_loss
         return loss.mean()
 
     def get_critical_masks_for_batch(self, preds, targets):
@@ -131,17 +132,17 @@ class SuperVoxel(nn.Module):
         Parameters
         ----------
         preds : torch.Tensor
-            Tensor containing the model's predictions with shape (batch_size,
-            1, height, width, *depth*). This tensor should contain raw output
-            probabilities (logits) from the model.
+            Predictions with the shape (batch_size, 1, height, width, *depth).
+            This tensor should contain raw output probabilities (logits) from
+            the model.
         targets : torch.Tensor
-            Tensor containing the ground truth segmentations, with the shape
-            (batch_size, 1, height, width, *depth*).
+            Ground truth segmentations with the shape (batch_size, 1, height,
+            width, *depth).
 
         Returns
         -------
         torch.Tensor
-            Tensor of binary masks that identify the critical components.
+            Binary masks that identify critical components.
 
         """
         with ProcessPoolExecutor() as executor:
@@ -156,9 +157,7 @@ class SuperVoxel(nn.Module):
                     )
                 )
                 processes.append(
-                    executor.submit(
-                        self.get_critical_mask, target, pred, i, 1
-                    )
+                    executor.submit(self.get_critical_mask, target, pred, i, 1)
                 )
 
             # Store results
@@ -199,7 +198,7 @@ class SuperVoxel(nn.Module):
 
     def toGPU(self, arr):
         """
-        Converts the given arr to a tensor and moves it to a GPU device.
+        Converts the given array to a tensor and moves it to a GPU device.
 
         Parameters
         ----------
@@ -218,12 +217,14 @@ class SuperVoxel(nn.Module):
 
 
 # --- Subclasses ---
-class SuperVoxel2D(SuperVoxel):
+class SuperVoxelLoss2D(SuperVoxel):
     """
-    Subclass of SuperVoxel designed for 2D segmentation tasks with additional
-    functionality for computing and handling critical components in 2D data.
+    Subclass of SuperVoxelLoss designed for 2D segmentation tasks with
+    additional functionality for computing and handling critical components
+    in 2D images.
 
     """
+
     def __init__(
         self,
         alpha=0.5,
@@ -267,7 +268,14 @@ class SuperVoxel2D(SuperVoxel):
         self.detect_critical = detect_critical_2d
 
 
-class SuperVoxel3D(SuperVoxel):
+class SuperVoxelLoss3D(SuperVoxel):
+    """
+    Subclass of SuperVoxelLoss designed for 3D segmentation tasks with
+    additional functionality for computing and handling critical components
+    in 3D images.
+
+    """
+
     def __init__(
         self,
         alpha=0.5,

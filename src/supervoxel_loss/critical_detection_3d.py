@@ -17,7 +17,10 @@ import numpy as np
 
 def detect_critical_3d(y_target, y_pred):
     """
-    Detects negatively critical components for 3D images.
+    Detcts negatively critical components by performing BFS on the
+    foreground of "y_mistakes". A root voxel is sampled from the foreground,
+    and BFS is used to extract the connected component. Criticality conditions
+    are checked once the BFS reaches the boundary of the component.
 
     Parameters
     ----------
@@ -32,41 +35,18 @@ def detect_critical_3d(y_target, y_pred):
         Binary mask where critical components are marked with a "1".
 
     """
+    # Compute mistakes
     y_mistakes = false_negative_mask(y_target, y_pred)
     y_target_minus_mistakes, _ = label(y_target * (1 - y_mistakes))
-    return run_detection(y_target, y_mistakes, y_target_minus_mistakes)
 
-
-def run_detection(y_target, y_mistakes, y_minus_mistakes):
-    """
-    Detcts negatively critical components by performing BFS on the
-    foreground of "y_mistakes". A root voxel is sampled from the foreground,
-    and BFS is used to extract the connected component. Criticality conditions
-    are checked once the BFS reaches the boundary of the component.
-
-    Parameters
-    ----------
-    y_target : numpy.ndarray
-        Groundtruth segmentation where each segment has a unique label.
-    y_mistakes : numpy.ndarray
-        Binary mask where incorect voxel predictions are marked with a "1".
-    y_minus_mistakes : numpy.ndarray
-        Connected components of the groundtruth segmentation "minus" the
-        mistakes mask.
-
-    Returns
-    -------
-    numpy.ndarray
-        Binary mask where critical components are marked with a "1".
-
-    """
+    # Detect critical mistakes
     n_criticals = 0
     critical_mask = np.zeros(y_target.shape, dtype=bool)
     foreground = get_foreground(y_mistakes)
     while len(foreground) > 0:
         xyz_r = sample(foreground, 1)[0]
         component_mask, visited, is_critical = extract_component(
-            y_target, y_mistakes, y_minus_mistakes, xyz_r
+            y_target, y_mistakes, y_target_minus_mistakes, xyz_r
         )
         foreground = foreground.difference(visited)
         if is_critical:
