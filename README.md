@@ -72,10 +72,6 @@ for epoch in range(n_epochs):
         optimizer.step()
 ```
 
-<p>
-  <img src="imgs/usage.png" width="900" alt="pipeline">
-</p>
-
 ## Installation
 To use the software, in the root directory, run
 ```bash
