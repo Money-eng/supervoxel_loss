@@ -164,7 +164,7 @@ class SuperVoxelLoss(nn.Module):
             critical_masks = np.zeros(preds.shape)
             for process in as_completed(processes):
                 i, mask_i = process.result()
-                critical_masks[i, ...] = mask_i
+                critical_masks[i, ...] += mask_i
         return self.toGPU(critical_masks)
 
     def get_critical_mask(self, pred, target, process_id, critical_type):
