@@ -35,6 +35,43 @@ Finally, the loss is computed by comparing the prediction with the ground truth 
 
 Here is a simple example of using this loss function to train a model.
 
+```python
+import torch.nn as nn
+import torch.optim as optim
+
+from supervoxel_loss.loss import SuperVoxelLoss2D
+
+    
+# Initialization
+model = UNet()
+optimizer = optim.AdamW(model.parameters(), lr=1e-4)
+
+loss_switch_epoch = 10
+voxel_loss = nn.BCEWithLogitsLoss()
+supervoxel_loss = SuperVoxelLoss2D(alpha=0.5, beta=0.5, threshold=0)
+
+# Main
+for epoch in range(n_epochs):
+    # Set loss function based on the current epoch
+    if epoch < loss_switch_epoch:
+        loss_function = voxel_loss
+   else:
+        loss_function = supervoxel_loss
+
+    # Training loop
+    for inputs, targets in dataloader:
+        # Forward pass
+        preds = model(inputs)
+
+        # Compute loss
+        loss = loss_function(preds, targets)
+
+        # Backward pass
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+```
+
 <p>
   <img src="imgs/usage.png" width="900" alt="pipeline">
 </p>
