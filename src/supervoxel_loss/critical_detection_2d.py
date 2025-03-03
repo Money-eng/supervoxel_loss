@@ -32,39 +32,17 @@ def detect_critical_2d(y_target, y_pred):
         Binary mask where critical components are marked with a "1".
 
     """
+    # Compute mistakes
     y_mistakes = false_negative_mask(y_target, y_pred)
     y_target_minus_mistakes, _ = label(y_target * (1 - y_mistakes))
-    return run_detection(y_target, y_mistakes, y_target_minus_mistakes)
 
-
-def run_detection(y_target, y_mistakes, y_minus_mistakes):
-    """
-    Computes negatively critical components by performing a BFS on the
-    foreground. A root is sampled from the foreground, and a BFS is performed
-    to extract the connected component corresponding to the root.
-
-    Parameters
-    ----------
-    y_target : numpy.ndarray
-        Groundtruth segmentation where each segment has a unique label.
-    y_mistakes : numpy.ndarray
-        Binary mask where incorect pixel predictions are marked with a "1".
-    y_minus_mistakes : numpy.ndarray
-        Connected components of the groundtruth segmentation "minus" the
-        mistakes mask.
-
-    Returns
-    -------
-    numpy.ndarray
-        Binary mask where critical components are marked with a "1".
-
-    """
+    # Detect critical mistakes
     critical_mask = np.zeros(y_target.shape)
     foreground = get_foreground(y_mistakes)
     while len(foreground) > 0:
         xy_r = sample(foreground, 1)[0]
         component_mask, visited, is_critical = extract_component(
-            y_target, y_mistakes, y_minus_mistakes, xy_r
+            y_target, y_mistakes, y_target_minus_mistakes, xy_r
         )
         foreground = foreground.difference(visited)
         if is_critical:
