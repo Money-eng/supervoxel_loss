@@ -31,6 +31,12 @@ Finally, the loss is computed by comparing the prediction with the ground truth 
   <b> Figure: </b>Visualization of supervoxel-based loss computation.
 </p>
 
+## Installation
+To use the software, in the root directory, run
+```bash
+pip install -e .
+```
+
 ## Usage
 
 Here is a simple example of using this loss function to train a model.
@@ -70,12 +76,6 @@ for epoch in range(n_epochs):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-```
-
-## Installation
-To use the software, in the root directory, run
-```bash
-pip install -e .
 ```
 
 ## Contact Information
