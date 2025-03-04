@@ -33,7 +33,7 @@ def detect_critical_2d(y_target, y_pred):
 
     """
     # Compute mistakes
-    y_mistakes = false_negative_mask(y_target, y_pred)
+    y_mistakes = get_false_negative_mask(y_target, y_pred)
     y_target_minus_mistakes, _ = label(y_target * (1 - y_mistakes))
 
     # Detect critical mistakes
@@ -101,7 +101,7 @@ def extract_component(y_target, y_mistakes, y_minus_mistakes, xy_r):
     return mask, visited, is_critical
 
 
-def false_negative_mask(y_target, y_pred):
+def get_false_negative_mask(y_target, y_pred):
     """
     Computes false negative mask.
 
@@ -118,8 +118,8 @@ def false_negative_mask(y_target, y_pred):
         Binary mask where false negative mistakes are marked with a "1".
 
     """
-    false_negatives = y_target.astype(bool) * (1 - y_pred.astype(bool))
-    return false_negatives.astype(int)
+    fn_mask = y_target.astype(bool) * (1 - y_pred.astype(bool))
+    return fn_mask.astype(int)
 
 
 def get_foreground(img):

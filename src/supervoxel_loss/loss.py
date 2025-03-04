@@ -51,7 +51,8 @@ class SuperVoxelLoss(nn.Module):
         beta=0.5,
         criterion=nn.BCEWithLogitsLoss(reduction="none"),
         device="cuda",
-        threshold=0.5,
+        return_mask=False,
+        threshold=0.0,
     ):
         """
         Instantiates SuperVoxelLoss object with the given parameters.
@@ -71,8 +72,11 @@ class SuperVoxelLoss(nn.Module):
             nn.BCEWithLogitsLoss.
         device : str, optional
             Device on which to train model. The default is "cuda".
+        return_mask, bool, optional
+            Indication of whether to return loss as an image mask. The default
+            is False.
         threshold : float, optional
-            Theshold used to binarize predictions. The default is 0.5.
+            Theshold used to binarize predictions. The default is 0.0.
 
         Returns
         -------
@@ -87,6 +91,7 @@ class SuperVoxelLoss(nn.Module):
         self.beta = beta
         self.criterion = criterion
         self.device = device
+        self.return_mask = return_mask
         self.threshold = threshold
 
     def forward(self, preds, targets):
@@ -120,10 +125,8 @@ class SuperVoxelLoss(nn.Module):
         critical_masks = self.get_critical_masks_for_batch(preds, targets)
         for i in range(preds.shape[0]):
             structure_loss = critical_masks[i, ...] * loss[i, ...]
-            loss[i, ...] = (1 - self.alpha) * loss[
-                i, ...
-            ] + self.alpha * structure_loss
-        return loss.mean()
+            loss[i, ...] = (1 - self.alpha) * loss[i, ...] + self.alpha * structure_loss
+        return loss if self.return_mask else loss.mean()
 
     def get_critical_masks_for_batch(self, preds, targets):
         """
@@ -149,7 +152,7 @@ class SuperVoxelLoss(nn.Module):
             # Assign processes
             processes = []
             for i in range(preds.shape[0]):
-                pred, _ = label(preds[i, ...])
+                pred, _ = label(preds[i, ...] > self.threshold)
                 target, _ = label(targets[i, ...])
                 processes.append(
                     executor.submit(
@@ -231,7 +234,8 @@ class SuperVoxelLoss2D(SuperVoxelLoss):
         beta=0.5,
         criterion=nn.BCEWithLogitsLoss(reduction="none"),
         device="cuda",
-        threshold=0.5,
+        return_mask=False,
+        threshold=0.0,
     ):
         """
         Instantiates SuperVoxelLoss2D object with the given parameters.
@@ -251,6 +255,9 @@ class SuperVoxelLoss2D(SuperVoxelLoss):
             nn.BCEWithLogitsLoss.
         device : str, optional
             Device on which to train model. The default is "cuda".
+        return_mask, bool, optional
+            Indication of whether to return loss as an image mask. The default
+            is False.
         threshold : float, optional
             Theshold used to binarize predictions. The default is 0.5.
 
@@ -261,7 +268,7 @@ class SuperVoxelLoss2D(SuperVoxelLoss):
         """
         # Call parent class
         super(SuperVoxelLoss2D, self).__init__(
-            alpha, beta, criterion, device, threshold
+            alpha, beta, criterion, device, return_mask, threshold
         )
 
         # Instance attributes
@@ -282,7 +289,8 @@ class SuperVoxelLoss3D(SuperVoxelLoss):
         beta=0.5,
         criterion=nn.BCEWithLogitsLoss(reduction="none"),
         device="cuda",
-        threshold=0.5,
+        return_mask=False,
+        threshold=0.0,
     ):
         """
         Instantiates SuperVoxelLoss3D object with the given parameters.
@@ -302,6 +310,9 @@ class SuperVoxelLoss3D(SuperVoxelLoss):
             nn.BCEWithLogitsLoss.
         device : str, optional
             Device on which to train model. The default is "cuda".
+        return_mask, bool, optional
+            Indication of whether to return loss as an image mask. The default
+            is False.
         threshold : float, optional
             Theshold used to binarize predictions. The default is 0.5.
 
@@ -312,7 +323,7 @@ class SuperVoxelLoss3D(SuperVoxelLoss):
         """
         # Call parent class
         super(SuperVoxelLoss3D, self).__init__(
-            alpha, beta, criterion, device, threshold
+            alpha, beta, criterion, device, return_mask, threshold
         )
 
         # Instance attributes
