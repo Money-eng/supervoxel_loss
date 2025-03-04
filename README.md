@@ -48,7 +48,7 @@ optimizer = optim.AdamW(model.parameters(), lr=1e-4)
 
 loss_switch_epoch = 10
 voxel_loss = nn.BCEWithLogitsLoss()
-supervoxel_loss = SuperVoxelLoss2D(alpha=0.5, beta=0.5, threshold=0)
+supervoxel_loss = SuperVoxelLoss2D(alpha=0.5, beta=0.5)
 
 # Main
 for epoch in range(n_epochs):
