@@ -9,7 +9,7 @@
 
 [paper](https://arxiv.org/abs/2501.01022) | [poster](https://github.com/AllenNeuralDynamics/supervoxel-loss/blob/main/imgs/poster.pdf)
 
-This repository implements a connectivity-preserving loss function that improves segmentation of curvilinear structures by penalizing both structure-level and voxel-level mistakes. The structure-level loss is calculated by detecting supervoxels (i.e. connected components) in the false positive and false negative masks, then assigning higher penalties to *critical* supervoxels that introduce connectivity errors.
+This repository implements a connectivity-preserving loss function that improves segmentation of curvilinear structures by penalizing both structure-level and voxel-level mistakes. The structure-level loss is calculated by computing supervoxels (i.e. connected components) in the false positive and false negative masks, then assigning higher penalties to *critical* supervoxels that introduce connectivity errors.
 
 ## Method
 
