@@ -26,7 +26,7 @@ Finally, the loss is computed by comparing the prediction with the ground truth 
 <br>
 
 <p>
-  <img src="imgs/pipeline.png" width="900" alt="pipeline">
+  <img src="imgs/pipeline.png" width="850" alt="pipeline">
   <br>
   <b> Figure: </b>Visualization of supervoxel-based loss computation.
 </p>
