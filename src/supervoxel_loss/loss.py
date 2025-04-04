@@ -33,8 +33,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from supervoxel_loss.critical_detection_2d import detect_critical_2d
-from supervoxel_loss.critical_detection_3d import detect_critical_3d
+from RSA_deep_working.Metrics.Losses.supervoxel_loss.src.supervoxel_loss.critical_detection_2d import detect_critical_2d
+from RSA_deep_working.Metrics.Losses.supervoxel_loss.src.supervoxel_loss.critical_detection_3d import detect_critical_3d
 
 
 class SuperVoxelLoss(nn.Module):
